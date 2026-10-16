@@ -293,7 +293,7 @@ function askPass(msg,ctx){
    err.hidden=true;
    try{const ok=await BK.checkPass(p,ctx);
     if(ok)done(true);else{err.textContent=tx('badPass');err.hidden=false;inp.select()}}
-   catch(e){err.textContent=tx('passFail');err.hidden=false}};
+   catch(e){err.textContent=tx('passFail')+' ('+((e&&e.message)||e)+')';err.hidden=false}};
   ov.querySelector('#pwok').onclick=go;
   ov.querySelector('#pwno').onclick=()=>done(false);
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();if(e.key==='Escape')done(false)});
