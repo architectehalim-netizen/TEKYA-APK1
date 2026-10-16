@@ -358,7 +358,7 @@ function num(v) {
   return isNaN(n) ? 0 : n;
 }
 
-// Offline copy: data embedded in the file, one line per sheet row, cells separated by "|".
+// ---------- API (Apps Script Web App) ----------
 var API_URL = 'https://script.google.com/macros/s/AKfycbwf6Qg2eInE_0rfoUuzBxP0IY-PWHpeiBh71AOuHHdHj3DHenvgHX1Yx0dkEbXAlqQi2A/exec';
 var IS_APPS = typeof google !== 'undefined' && !!(google.script && google.script.run);
 var LIVE = true;
@@ -428,7 +428,7 @@ function extractTables(rows) {
   return { tables: tables, order: order };
 }
 
-// يعرض الاسم مع رمز المشروع: F1 -> DBS4-F1 (دون تكرار إذا كان موجوداً)
+// Show the item name with the project code: F1 -> DBS4-F1 (no duplicate if already present)
 function shortName(key, code) {
   var p = code + '-';
   return key.toUpperCase().indexOf(p.toUpperCase()) === 0 ? key : p + key;
@@ -501,6 +501,7 @@ function load() {
     afterLoad();
     refreshCounts();
   }).catch(function (e) { setStatus(t('loadFail') + esc(e.message || e), true); });
+}
 
 function projectCodes() {
   var out = [];
@@ -941,7 +942,7 @@ function entSubmit() {
   });
 }
 
-// تحديث بطاقة الإدخال بعد كل رسم للجدول
+// Refresh the entry card after every table render
 var renderBase = render;
 render = function () { renderBase(); renderEntry(); };
 
