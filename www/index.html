@@ -269,7 +269,7 @@ const fmt=n=>(n||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFract
 const fq=n=>(n||0).toLocaleString('fr-FR',{maximumFractionDigits:2});
 const num=v=>{const x=parseFloat(String(v||'').replace(/\s/g,'').replace(',','.'));return isNaN(x)?0:x};
 const GAS=typeof google!=='undefined'&&google.script&&google.script.run;
-const DEFAULT_URL='https://script.google.com/macros/s/AKfycbwtiAK3cr7oaCkLBkCBH280O-OOAznY5t4Ey4seecE5kMYUzuXbmHL-MfK3rqTLFAv1/exec';
+const DEFAULT_URL='https://script.google.com/macros/s/AKfycby0qyxCZymLrJfBK-6xv9lBAybMQ6MEJfZOZQMWssXoX-wYV7cRyoOWRU8ERDj82cnh/exec';
 const CFG={url:DEFAULT_URL,token:''};
 try{const d=JSON.parse(localStorage.getItem('st_api')||'null');if(d){CFG.url=d.url||'';CFG.token=d.token||''}}catch(e){}
 const REMOTE=()=>!!(GAS||CFG.url);
