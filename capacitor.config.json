@@ -1,6 +1,6 @@
 {
-  "appId": "com.tekya.app",
-  "appName": "TEKYA",
+  "appId": "com.tekya.straitant",
+   "appName": "S-TRAITANT",
   "webDir": "www",
   "plugins": {
     "CapacitorHttp": {
