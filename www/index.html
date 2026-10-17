@@ -247,6 +247,9 @@ tr:{dir:'ltr',loc:'tr',
 Object.assign(I.ar,{askPass:'أدخل كلمة المرور',badPass:'كلمة المرور خاطئة',passFail:'تعذّر التحقق من كلمة المرور',ok:'موافق',cancel:'إلغاء'});
 Object.assign(I.fr,{askPass:'Entrez le mot de passe',badPass:'Mot de passe incorrect',passFail:'Impossible de vérifier le mot de passe',ok:'OK',cancel:'Annuler'});
 Object.assign(I.tr,{askPass:'Şifreyi girin',badPass:'Şifre yanlış',passFail:'Şifre doğrulanamadı',ok:'Tamam',cancel:'İptal'});
+Object.assign(I.ar,{bulkEh:'تعيين العناصر دفعة واحدة',bulkApplyE:'تطبيق العناصر على كل بلوكاتي ({n})'});
+Object.assign(I.fr,{bulkEh:'Affecter les éléments en une fois',bulkApplyE:'Appliquer les éléments à tous mes blocs ({n})'});
+Object.assign(I.tr,{bulkEh:'Kalemleri toplu ata',bulkApplyE:'Kalemleri tüm bloklarıma uygula ({n})'});
 let LANG='ar';
 try{const l=localStorage.getItem('st_lang');if(I[l])LANG=l}catch(e){}
 let TAB='st';
@@ -269,7 +272,7 @@ const fmt=n=>(n||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFract
 const fq=n=>(n||0).toLocaleString('fr-FR',{maximumFractionDigits:2});
 const num=v=>{const x=parseFloat(String(v||'').replace(/\s/g,'').replace(',','.'));return isNaN(x)?0:x};
 const GAS=typeof google!=='undefined'&&google.script&&google.script.run;
-const DEFAULT_URL='https://script.google.com/macros/s/AKfycby0qyxCZymLrJfBK-6xv9lBAybMQ6MEJfZOZQMWssXoX-wYV7cRyoOWRU8ERDj82cnh/exec';
+const DEFAULT_URL='https://script.google.com/macros/s/AKfycbwtiAK3cr7oaCkLBkCBH280O-OOAznY5t4Ey4seecE5kMYUzuXbmHL-MfK3rqTLFAv1/exec';
 const CFG={url:DEFAULT_URL,token:''};
 try{const d=JSON.parse(localStorage.getItem('st_api')||'null');if(d){CFG.url=d.url||'';CFG.token=d.token||''}}catch(e){}
 const REMOTE=()=>!!(GAS||CFG.url);
@@ -381,6 +384,8 @@ function pctChk(){const p=proj();if(!p||!S.contractor)return;const t=cfg(p.code,
  $('#pctchk').textContent=okk?tx('tot100'):tx('totBad',{x:fq(t)});$('#pctchk').className='msg '+(okk?'ok':'err')}
 
 let BS=[1,0,0,0,0];
+let ES={};
+const esel=p=>ES[p.code]||(ES[p.code]=p.types.map(t=>t.code));
 function renderBlocks(){
  const p=proj(),c=S.contractor;
  if(!p||!c){$('#grid').innerHTML=`<p class="msg">${pk()}</p>`;$('#bulk').innerHTML='';$('#blocks').innerHTML='';return}
@@ -389,8 +394,11 @@ function renderBlocks(){
  const others=b=>S.contractors.filter(o=>o!==c&&((S.cfg[p.code+'|'+o]||{blocks:{}}).blocks[b.id]||{}).on);
  $('#grid').innerHTML=p.blocks.map(b=>{const s=g.blocks[b.id],on=!!(s&&s.on),o=others(b);
   return `<button class="bt${on?' on':''}${b.any?'':' emp'}" data-bt="${esc(b.id)}" aria-pressed="${on}" title="${o.length?esc(tx('with')+o.join(tx('sep'))):''}">${esc(b.id)}${o.length?'<i></i>':''}</button>`}).join('');
- const sel=p.blocks.filter(b=>g.blocks[b.id]&&g.blocks[b.id].on);
- $('#bulk').innerHTML=`<div class="chips">${N.map((n,i)=>`<button class="chip${BS[i]?' on':''}" data-bst="${i}" aria-pressed="${!!BS[i]}">${esc(n)}</button>`).join('')}</div><button class="ghost" id="bapply">${tx('bulkApply',{n:sel.length})}</button>`;
+ const sel=p.blocks.filter(b=>g.blocks[b.id]&&g.blocks[b.id].on),es=esel(p);
+ $('#bulk').innerHTML=`<div class="chips">${N.map((n,i)=>`<button class="chip${BS[i]?' on':''}" data-bst="${i}" aria-pressed="${!!BS[i]}">${esc(n)}</button>`).join('')}</div><button class="ghost" id="bapply">${tx('bulkApply',{n:sel.length})}</button>
+ <h3>${tx('bulkEh')}</h3>
+ <div class="chips">${p.types.map(t=>{const on=es.includes(t.code);return `<button class="chip${on?' on':''}" data-est="${esc(t.code)}" aria-pressed="${on}">${esc(t.code.split('-').pop())}</button>`}).join('')}</div>
+ <div class="row"><button class="ghost" id="eall">${tx('all')}</button><button class="ghost" id="enone">${tx('none')}</button><button class="ghost" id="eapply">${tx('bulkApplyE',{n:sel.length})}</button></div>`;
  $('#blocks').innerHTML=sel.length?sel.map(b=>{const s=g.blocks[b.id],x=rm[b.id]||{v:0,pr:0};
   return `<div class="bc"><div class="bh"><b>${tx('block')} ${esc(b.id)}</b><span class="msg">${tx('prodW')} <b class="n">${fmt(x.pr)}</b> ${tx('ofW')} <span class="n">${fmt(x.v)}</span></span></div>
   <div class="chips">${N.map((n,i)=>`<button class="chip${s.st[i]?' on':''}" data-stb="${esc(b.id)}|${i}" aria-pressed="${!!s.st[i]}">${esc(n)}</button>`).join('')}</div>
@@ -457,6 +465,10 @@ document.addEventListener('click',e=>{const t=e.target.closest('button,input')||
   else if(t.dataset.elb!==undefined){const[i,code]=t.dataset.elb.split('|'),b=bs(g,i);b.off=b.off.includes(code)?b.off.filter(x=>x!==code):b.off.concat(code)}
   else if(t.dataset.bst!==undefined){BS[+t.dataset.bst]=BS[+t.dataset.bst]?0:1;renderBlocks();hit=false}
   else if(t.id==='bapply'){p.blocks.forEach(b=>{const k=g.blocks[b.id];if(k&&k.on)k.st=BS.slice()})}
+  else if(t.dataset.est!==undefined){const es=esel(p),c2=t.dataset.est;ES[p.code]=es.includes(c2)?es.filter(x=>x!==c2):es.concat(c2);renderBlocks();hit=false}
+  else if(t.id==='eall'){ES[p.code]=p.types.map(x=>x.code);renderBlocks();hit=false}
+  else if(t.id==='enone'){ES[p.code]=[];renderBlocks();hit=false}
+  else if(t.id==='eapply'){const es=esel(p),off=p.types.map(x=>x.code).filter(x=>!es.includes(x));p.blocks.forEach(b=>{const k=g.blocks[b.id];if(k&&k.on)k.off=off.slice()})}
   else if(t.id==='alln'){p.blocks.forEach(b=>{bs(g,b.id).on=true})}
   else if(t.id==='non'){p.blocks.forEach(b=>{if(g.blocks[b.id])g.blocks[b.id].on=false})}
   else hit=false;
