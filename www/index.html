@@ -13,9 +13,11 @@ header,main{max-width:1150px;margin:0 auto;padding:0 20px}
 header{padding-top:24px}h1{margin:0;font-size:24px}
 header p{margin:2px 0 0;color:var(--muted)}
 [hidden]{display:none!important}
-.langs{display:flex;gap:4px;margin-bottom:8px}
+.langs{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
+.langs .sep{width:14px}
 button.lg{background:transparent;color:var(--accent);padding:1px 8px;min-height:24px;font-size:12px;border-radius:5px}
 button.lg.on{background:var(--accent);color:var(--accent-ink)}
+button.md{font-weight:700;letter-spacing:.4px}
 .tabs{display:flex;gap:8px;margin:0 0 14px}
 button.tab{flex:1;background:transparent;color:var(--accent);font-weight:700;padding:8px 12px;letter-spacing:.5px}
 button.tab.on{background:var(--accent);color:var(--accent-ink)}
@@ -55,6 +57,7 @@ html[dir=rtl] .card b{text-align:right}html[dir=ltr] .card b{text-align:left}
 .plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
 .pr{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:6px;padding:6px 10px}
 .pr input{width:120px}
+.pr input[type=checkbox]{width:20px;height:20px}
 .kv{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed var(--line)}
 details summary{cursor:pointer;font-weight:600;padding:6px 0}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
@@ -75,15 +78,17 @@ details summary{cursor:pointer;font-weight:600;padding:6px 0}
 </head>
 <body>
 <header>
-<div class="langs" role="group" aria-label="Language">
+<div class="langs" role="group" aria-label="Language / Table">
 <button class="lg" data-lang="ar">العربية</button><button class="lg" data-lang="fr">Français</button><button class="lg" data-lang="tr">Türkçe</button>
+<span class="sep"></span>
+<button class="lg md" data-mode="pr">PROPOSER</button><button class="lg md" data-mode="rl">REALISER</button>
 </div>
 <div class="tabs" role="group" aria-label="Interface"><button class="tab" data-tab="st">SOUS-TRAITANT</button><button class="tab" data-tab="fa">FACTURATION</button></div>
-<h1 data-i="title" data-i-fa="titleFa"></h1><p data-i="sub"></p></header>
+<h1 data-i="title" data-i-fa="titleFa"></h1><p data-i="sub"></p><p class="msg" dir="ltr" style="font-size:11px;margin:0">build v5 · 17-10-2026 · proposer / realiser</p></header>
 <main>
 
 <section>
-<h2 data-i="h1"></h2>
+<h2 data-i="h1" data-i-pr="h1P"></h2>
 <p class="hint" data-i="hint1"></p>
 <div class="row"><button id="fetchbtn" data-i="fetch"></button></div>
 <p id="status" class="msg"></p>
@@ -144,15 +149,16 @@ details summary{cursor:pointer;font-weight:600;padding:6px 0}
 const $=s=>document.querySelector(s);
 const I={
 ar:{dir:'rtl',loc:'ar',
- st:['تركيب','زجاج','ضبط','استلام','حجز الضمان'],sep:'، ',
+ st:['تركيب','زجاج','ضبط','استلام'],sep:'، ',
  title:'وضعية المقاول (S-TRAITANT)',
- sub:'الكميات من ورقة realiser، والأسعار والمراحل والتفعيل تُدخل هنا.',
- h1:'1. الكميات من realiser',
- hint1:'تُجلب الكميات تلقائيًا من Google Sheets عند فتح التطبيق. اضغط "تحديث" بعد أي تغيير في الورقة. اللصق أو رفع ملف بديل عند تعذّر الاتصال. الإعدادات والوضعيات تُحفظ على الخادم.',
+ sub:'الكميات من ورقة proposer أو realiser (حسب الزر في الأعلى)، والأسعار والمراحل والتفعيل تُدخل هنا.',
+ h1:'1. الكميات من realiser',h1P:'1. الكميات من proposer',
+ hint1:'تُجلب الكميات تلقائيًا من Google Sheets عند فتح التطبيق وعند تبديل الجدول. اضغط "تحديث" بعد أي تغيير في الورقة. اللصق أو رفع ملف بديل عند تعذّر الاتصال. لكل جدول (PROPOSER / REALISER) وضعياته الخاصة. الإعدادات والوضعيات تُحفظ على الخادم.',
  fetch:'تحديث من Google Sheets',manual:'لصق يدوي أو رفع ملف (بديل)',parse:'تحليل',upload:'رفع ملف',
  h2:'2. المشروع والمقاول',project:'المشروع',contractor:'المقاول',newc:'اسم مقاول جديد',add:'إضافة',delc:'حذف المقاول',
  h3:'3. الأسعار والمراحل',prices:'أسعار الأنواع (دج / قطعة، للمشروع)',pcts:'نسب المراحل (%) لهذا المقاول في هذا المشروع',
- hintpct:'نسبة مرحلة retenue garantie هي نفسها نسبة الحجز، كما في ملف الإكسل: الحجز = هذه النسبة × القيمة الإجمالية للبلوكات (وليس الإنتاج)، ويُفرج عنه في البلوك الذي تُفعَّل فيه هذه المرحلة.',
+ retW:'نسبة الحجز (%)',retOnW:'تفعيل حساب الحجز',
+ hintpct:'الحجز = نسبة الحجز × الإنتاج (القيمة المفوترة)، ويُخصم من الصافي. ألغِ التفعيل إن لم يكن هناك حجز. مجموع نسب المراحل الأربع يجب أن يكون 100%.',
  h4:'4. البلوكات والمراحل والعناصر',
  hint4:'اضغط أرقام البلوكات التي ركّبها هذا المقاول. النقطة الحمراء تعني أن البلوك مسجل عند مقاول آخر، والبلوك الباهت لا كميات فيه بعد.',
  all:'تحديد الكل',none:'إلغاء الكل',bulkh:'تعيين المراحل دفعة واحدة',detailsh:'تفاصيل البلوكات المحددة',
@@ -164,9 +170,9 @@ ar:{dir:'rtl',loc:'ar',
  sitNo:'الوضعية رقم',dated:'مؤرخة في',value100:'قيمة الأشغال 100% (البلوكات المفعّلة)',
  cumProd:'الإنتاج المتراكم',cumRet:'الحجز المتراكم',prevCum:'المتراكم السابق (إنتاج / حجز)',
  curProd:'إنتاج الوضعية الحالية',curRet:'حجز الوضعية الحالية',net:'الصافي المستحق لهذه الوضعية (TTC)',
- save:'إدخال: حفظ الوضعية',saveHint:'بعد الحفظ تُخصم هذه الوضعية من الوضعية القادمة تلقائيًا.',
+ save:'إدخال: حفظ الوضعية',saveHint:'بعد الحفظ تُخصم هذه الوضعية من الوضعية القادمة تلقائيًا (في نفس الجدول).',
  sit:'وضعية',del:'حذف',netW:'الصافي',totNet:'مجموع الصافي لكل الوضعيات',
- noJr:'لا توجد وضعيات محفوظة لهذا المشروع والمقاول.',
+ noJr:'لا توجد وضعيات محفوظة لهذا المشروع والمقاول في هذا الجدول.',
  loading:'جارٍ تحميل البيانات...',updating:'جارٍ التحديث...',updated:'تم التحديث ({n} مشروع)',
  found:'تم التعرف على {n} مشروع.',nobloc:'لم أجد جدولًا يبدأ بعمود BLOC.',
  gasOnly:'هذا الزر يعمل داخل تطبيق Apps Script فقط. استعمل اللصق.',fetchFail:'تعذّر الجلب: ',
@@ -175,17 +181,18 @@ ar:{dir:'rtl',loc:'ar',
  apiHint:'يُستعمل هذا الرابط عند تشغيل الصفحة خارج Apps Script، مثل تطبيق APK أو موقع GitHub Pages.',
  noUrl:'أدخل رابط الخادم في إعدادات الاتصال.',saveFail:'تعذّر الحفظ على الخادم (محفوظ على هذا الجهاز فقط).',
  titleFa:'فوترة الشركة (FACTURATION)',h2Fa:'2. المشروع',pickFa:'اختر مشروعًا.',pctsFa:'نسب المراحل (%) في هذا المشروع',
- hint4Fa:'اضغط أرقام البلوكات المراد فوترتها. البلوك الباهت لا كميات فيه بعد.',noJrFa:'لا توجد وضعيات محفوظة لهذا المشروع.'},
+ hint4Fa:'اضغط أرقام البلوكات المراد فوترتها. البلوك الباهت لا كميات فيه بعد.',noJrFa:'لا توجد وضعيات محفوظة لهذا المشروع في هذا الجدول.'},
 fr:{dir:'ltr',loc:'fr',
- st:['MONTAGE','VITRAGE','RÉGLAGE','RÉCEPTION','RETENUE DE GARANTIE'],sep:', ',
+ st:['MONTAGE','VITRAGE','RÉGLAGE','RÉCEPTION'],sep:', ',
  title:'Situation du sous-traitant (S-TRAITANT)',
- sub:'Les quantités viennent de la feuille realiser ; les prix, phases et activations se saisissent ici.',
- h1:'1. Quantités (realiser)',
- hint1:'Les quantités sont récupérées automatiquement depuis Google Sheets à l’ouverture. Appuyez sur « Actualiser » après toute modification de la feuille. Le collage ou l’import d’un fichier sert de secours en cas d’échec de connexion. Les paramètres et les situations sont enregistrés sur le serveur.',
+ sub:'Les quantités viennent de la feuille proposer ou realiser (selon le bouton en haut) ; les prix, phases et activations se saisissent ici.',
+ h1:'1. Quantités (realiser)',h1P:'1. Quantités (proposer)',
+ hint1:'Les quantités sont récupérées automatiquement depuis Google Sheets à l’ouverture et au changement de tableau. Appuyez sur « Actualiser » après toute modification de la feuille. Le collage ou l’import d’un fichier sert de secours en cas d’échec de connexion. Chaque tableau (PROPOSER / REALISER) a ses propres situations. Les paramètres et les situations sont enregistrés sur le serveur.',
  fetch:'Actualiser depuis Google Sheets',manual:'Collage manuel ou import de fichier (secours)',parse:'Analyser',upload:'Importer un fichier',
  h2:'2. Projet et sous-traitant',project:'Projet',contractor:'Sous-traitant',newc:'Nom du nouveau sous-traitant',add:'Ajouter',delc:'Supprimer le sous-traitant',
  h3:'3. Prix et phases',prices:'Prix par type (DA / pièce, par projet)',pcts:'Pourcentages des phases (%) pour ce sous-traitant dans ce projet',
- hintpct:'Le pourcentage de la phase « retenue de garantie » est le même que celui de la retenue, comme dans le fichier Excel : retenue = ce pourcentage × valeur totale des blocs (et non la production), libérée dans le bloc où cette phase est activée.',
+ retW:'Taux de retenue (%)',retOnW:'Activer le calcul de la retenue',
+ hintpct:'Retenue = taux de retenue × production (valeur facturée), déduite du net. Désactivez-la s’il n’y a pas de retenue. Le total des 4 phases doit être 100 %.',
  h4:'4. Blocs, phases et éléments',
  hint4:'Touchez les numéros des blocs posés par ce sous-traitant. Le point rouge indique un bloc déjà attribué à un autre sous-traitant ; un bloc estompé n’a encore aucune quantité.',
  all:'Tout sélectionner',none:'Tout désélectionner',bulkh:'Affecter les phases en une fois',detailsh:'Détails des blocs sélectionnés',
@@ -197,9 +204,9 @@ fr:{dir:'ltr',loc:'fr',
  sitNo:'Situation n°',dated:'Datée du',value100:'Valeur des travaux à 100 % (blocs activés)',
  cumProd:'Production cumulée',cumRet:'Retenue cumulée',prevCum:'Cumul précédent (production / retenue)',
  curProd:'Production de la situation actuelle',curRet:'Retenue de la situation actuelle',net:'Net à payer pour cette situation (TTC)',
- save:'Enregistrer la situation',saveHint:'Après l’enregistrement, cette situation est déduite automatiquement de la suivante.',
+ save:'Enregistrer la situation',saveHint:'Après l’enregistrement, cette situation est déduite automatiquement de la suivante (dans le même tableau).',
  sit:'Situation',del:'Supprimer',netW:'Net',totNet:'Total net de toutes les situations',
- noJr:'Aucune situation enregistrée pour ce projet et ce sous-traitant.',
+ noJr:'Aucune situation enregistrée pour ce projet et ce sous-traitant dans ce tableau.',
  loading:'Chargement des données...',updating:'Actualisation...',updated:'Mis à jour ({n} projet(s))',
  found:'{n} projet(s) reconnu(s).',nobloc:'Aucun tableau commençant par la colonne BLOC.',
  gasOnly:'Ce bouton ne fonctionne que dans l’application Apps Script. Utilisez le collage.',fetchFail:'Échec de la récupération : ',
@@ -208,17 +215,18 @@ fr:{dir:'ltr',loc:'fr',
  apiHint:'Cette URL est utilisée lorsque la page tourne hors d’Apps Script, par exemple dans une application APK ou sur GitHub Pages.',
  noUrl:'Saisissez l’URL du serveur dans les paramètres de connexion.',saveFail:'Échec de l’enregistrement sur le serveur (sauvegardé uniquement sur cet appareil).',
  titleFa:'Facturation de l’entreprise (FACTURATION)',h2Fa:'2. Projet',pickFa:'Choisissez un projet.',pctsFa:'Pourcentages des phases (%) dans ce projet',
- hint4Fa:'Touchez les numéros des blocs à facturer. Un bloc estompé n’a encore aucune quantité.',noJrFa:'Aucune situation enregistrée pour ce projet.'},
+ hint4Fa:'Touchez les numéros des blocs à facturer. Un bloc estompé n’a encore aucune quantité.',noJrFa:'Aucune situation enregistrée pour ce projet dans ce tableau.'},
 tr:{dir:'ltr',loc:'tr',
- st:['MONTAJ','CAM','AYAR','TESLİM','TEMİNAT KESİNTİSİ'],sep:', ',
+ st:['MONTAJ','CAM','AYAR','TESLİM'],sep:', ',
  title:'Taşeron hakedişi (S-TRAITANT)',
- sub:'Miktarlar realiser sayfasından gelir; fiyatlar, aşamalar ve etkinleştirme burada girilir.',
- h1:'1. Miktarlar (realiser)',
- hint1:'Miktarlar uygulama açılırken Google Sheets’ten otomatik alınır. Sayfada değişiklik yaptıktan sonra “Yenile”ye basın. Bağlantı kurulamazsa yapıştırma veya dosya yükleme alternatif olarak kullanılır. Ayarlar ve hakedişler sunucuda saklanır.',
+ sub:'Miktarlar proposer veya realiser sayfasından gelir (üstteki düğmeye göre); fiyatlar, aşamalar ve etkinleştirme burada girilir.',
+ h1:'1. Miktarlar (realiser)',h1P:'1. Miktarlar (proposer)',
+ hint1:'Miktarlar uygulama açılırken ve tablo değiştirildiğinde Google Sheets’ten otomatik alınır. Sayfada değişiklik yaptıktan sonra “Yenile”ye basın. Bağlantı kurulamazsa yapıştırma veya dosya yükleme alternatif olarak kullanılır. Her tablonun (PROPOSER / REALISER) kendi hakedişleri vardır. Ayarlar ve hakedişler sunucuda saklanır.',
  fetch:'Google Sheets’ten yenile',manual:'Elle yapıştır veya dosya yükle (alternatif)',parse:'Çözümle',upload:'Dosya yükle',
  h2:'2. Proje ve taşeron',project:'Proje',contractor:'Taşeron',newc:'Yeni taşeron adı',add:'Ekle',delc:'Taşeronu sil',
  h3:'3. Fiyatlar ve aşamalar',prices:'Tür fiyatları (DA / adet, proje bazında)',pcts:'Bu taşeronun bu projedeki aşama yüzdeleri (%)',
- hintpct:'“Teminat kesintisi” aşamasının yüzdesi, Excel dosyasındaki gibi kesinti oranıyla aynıdır: kesinti = bu oran × blokların toplam değeri (üretim değil); bu aşamanın etkinleştirildiği blokta serbest bırakılır.',
+ retW:'Teminat kesintisi oranı (%)',retOnW:'Kesinti hesabını etkinleştir',
+ hintpct:'Kesinti = kesinti oranı × üretim (faturalanan değer), netten düşülür. Kesinti yoksa devre dışı bırakın. 4 aşamanın toplamı %100 olmalıdır.',
  h4:'4. Bloklar, aşamalar ve kalemler',
  hint4:'Bu taşeronun monte ettiği blokların numaralarına dokunun. Kırmızı nokta bloğun başka bir taşerona kayıtlı olduğunu, soluk blok ise henüz miktar girilmediğini gösterir.',
  all:'Tümünü seç',none:'Seçimi kaldır',bulkh:'Aşamaları toplu ata',detailsh:'Seçili blokların ayrıntıları',
@@ -230,9 +238,9 @@ tr:{dir:'ltr',loc:'tr',
  sitNo:'Hakediş no',dated:'Tarih',value100:'İş değeri %100 (etkin bloklar)',
  cumProd:'Kümülatif üretim',cumRet:'Kümülatif kesinti',prevCum:'Önceki kümülatif (üretim / kesinti)',
  curProd:'Bu hakedişin üretimi',curRet:'Bu hakedişin kesintisi',net:'Bu hakediş için ödenecek net (KDV dahil)',
- save:'Hakedişi kaydet',saveHint:'Kayıttan sonra bu hakediş, bir sonrakinden otomatik olarak düşülür.',
+ save:'Hakedişi kaydet',saveHint:'Kayıttan sonra bu hakediş, bir sonrakinden (aynı tabloda) otomatik olarak düşülür.',
  sit:'Hakediş',del:'Sil',netW:'Net',totNet:'Tüm hakedişlerin net toplamı',
- noJr:'Bu proje ve taşeron için kayıtlı hakediş yok.',
+ noJr:'Bu tabloda bu proje ve taşeron için kayıtlı hakediş yok.',
  loading:'Veriler yükleniyor...',updating:'Yenileniyor...',updated:'Güncellendi ({n} proje)',
  found:'{n} proje bulundu.',nobloc:'BLOC sütunuyla başlayan tablo bulunamadı.',
  gasOnly:'Bu düğme yalnızca Apps Script uygulamasında çalışır. Yapıştırmayı kullanın.',fetchFail:'Alınamadı: ',
@@ -241,7 +249,7 @@ tr:{dir:'ltr',loc:'tr',
  apiHint:'Bu bağlantı, sayfa Apps Script dışında çalışırken kullanılır; örneğin APK uygulaması veya GitHub Pages.',
  noUrl:'Bağlantı ayarlarına sunucu bağlantısını girin.',saveFail:'Sunucuya kaydedilemedi (yalnızca bu cihazda saklandı).',
  titleFa:'Şirket faturalandırması (FACTURATION)',h2Fa:'2. Proje',pickFa:'Bir proje seçin.',pctsFa:'Bu projedeki aşama yüzdeleri (%)',
- hint4Fa:'Faturalanacak blokların numaralarına dokunun. Soluk blokta henüz miktar yok.',noJrFa:'Bu proje için kayıtlı hakediş yok.'}
+ hint4Fa:'Faturalanacak blokların numaralarına dokunun. Soluk blokta henüz miktar yok.',noJrFa:'Bu tabloda bu proje için kayıtlı hakediş yok.'}
 };
 // نصوص كلمة المرور
 Object.assign(I.ar,{askPass:'أدخل كلمة المرور',badPass:'كلمة المرور خاطئة',passFail:'تعذّر التحقق من كلمة المرور',ok:'موافق',cancel:'إلغاء'});
@@ -254,14 +262,20 @@ let LANG='ar';
 try{const l=localStorage.getItem('st_lang');if(I[l])LANG=l}catch(e){}
 let TAB='st';
 try{const t0=localStorage.getItem('st_tab');if(t0==='fa'||t0==='st')TAB=t0}catch(e){}
+// الجدول الحالي: rl = REALISER ، pr = PROPOSER
+let MODE='rl';
+try{const m0=localStorage.getItem('st_mode');if(m0==='pr'||m0==='rl')MODE=m0}catch(e){}
+const SHEETS={rl:'realiser',pr:'proposer'};
+const MN={rl:'REALISER',pr:'PROPOSER'};
+const RAW={rl:'',pr:''};
+const PM={rl:[],pr:[]};
 const tx=(k,a)=>{let s=I[LANG][k];if(s==null)s=I.ar[k];if(a)for(const x in a)s=s.replace('{'+x+'}',a[x]);return s};
 const stN=()=>I[LANG].st;
 const pk=()=>tx(TAB==='fa'?'pickFa':'pick');
 let SF=null;
 const setSt=(cls,fn)=>{SF=fn;const e=$('#status');e.className='msg '+cls;e.textContent=fn()};
 
-const ST=[0,1,2,3,4];
-const newS=()=>({raw:'',contractors:[],project:'',contractor:'',prices:{},cfg:{},journal:[]});
+const newS=()=>({contractors:[],project:'',contractor:'',prices:{},cfg:{},journal:[]});
 const R={st:newS(),fa:newS()};
 R.fa.contractors=['FACT'];R.fa.contractor='FACT';
 let S=R[TAB];
@@ -272,7 +286,7 @@ const fmt=n=>(n||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFract
 const fq=n=>(n||0).toLocaleString('fr-FR',{maximumFractionDigits:2});
 const num=v=>{const x=parseFloat(String(v||'').replace(/\s/g,'').replace(',','.'));return isNaN(x)?0:x};
 const GAS=typeof google!=='undefined'&&google.script&&google.script.run;
-const DEFAULT_URL='https://script.google.com/macros/s/AKfycbwtiAK3cr7oaCkLBkCBH280O-OOAznY5t4Ey4seecE5kMYUzuXbmHL-MfK3rqTLFAv1/exec';
+const DEFAULT_URL='https://script.google.com/macros/s/AKfycby0qyxCZymLrJfBK-6xv9lBAybMQ6MEJfZOZQMWssXoX-wYV7cRyoOWRU8ERDj82cnh/exec';
 const CFG={url:DEFAULT_URL,token:''};
 try{const d=JSON.parse(localStorage.getItem('st_api')||'null');if(d){CFG.url=d.url||'';CFG.token=d.token||''}}catch(e){}
 const REMOTE=()=>!!(GAS||CFG.url);
@@ -280,6 +294,7 @@ const gas=(fn,...a)=>new Promise((ok,no)=>google.script.run.withSuccessHandler(o
 const web=(action,extra)=>fetch(CFG.url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action,token:CFG.token},extra||{}))}).then(r=>r.json()).then(j=>{if(!j||!j.ok)throw new Error((j&&j.error)||'error');return j.data});
 const BK={
  getRealiser:()=>GAS?gas('getRealiser'):web('getRealiser'),
+ getData:m=>m==='pr'?(GAS?gas('getData',SHEETS.pr):web('getData',{name:SHEETS.pr})):(GAS?gas('getRealiser'):web('getRealiser')),
  loadState:()=>GAS?gas('loadState'):web('loadState'),
  saveState:j=>GAS?gas('saveState',j):web('saveState',{state:j}),
  checkPass:(p,ctx)=>GAS?gas('checkPass',p,ctx||{}):web('checkPass',{pass:p,ctx:ctx||{}})};
@@ -304,6 +319,7 @@ function askPass(msg,ctx){
 let _t=null;
 function save(){
  try{localStorage.setItem('soustraitant_v3',JSON.stringify(R))}catch(e){}
+ try{localStorage.setItem('st_raw',JSON.stringify(RAW))}catch(e){}
  if(REMOTE()){clearTimeout(_t);_t=setTimeout(()=>{const c={st:Object.assign({},R.st),fa:Object.assign({},R.fa)};delete c.st.raw;delete c.fa.raw;BK.saveState(JSON.stringify(c)).catch(()=>setSt('err',()=>tx('saveFail')))},700)}}
 // دمج حالة محفوظة: الصيغة الجديدة {st,fa}، أو القديمة المسطحة (تُنقل إلى soustraitant)
 function ingest(d){
@@ -315,20 +331,33 @@ function ingest(d){
  S=R[TAB]}
 function setTab(t){
  if(t!=='st'&&t!=='fa')return;
- BSM[TAB]=BS;TAB=t;BS=BSM[t]||[1,0,0,0,0];S=R[t];
+ BSM[TAB]=BS;TAB=t;BS=BSM[t]||[1,0,0,0];S=R[t];
  try{localStorage.setItem('st_tab',t)}catch(e){}
  applyLang();renderAll()}
-function load(){try{const d=JSON.parse(localStorage.getItem('soustraitant_v3')||localStorage.getItem('soustraitant_v2')||'null');ingest(d)}catch(e){}}
+function setMode(m){
+ if((m!=='rl'&&m!=='pr')||m===MODE)return;
+ MODE=m;try{localStorage.setItem('st_mode',m)}catch(e){}
+ P=PM[m];$('#raw').value=RAW[m];fixProj();
+ applyLang();renderAll();
+ if(!RAW[m])fetchData()}
+function load(){
+ try{const d=JSON.parse(localStorage.getItem('soustraitant_v3')||localStorage.getItem('soustraitant_v2')||'null');
+  ingest(d);
+  // نسخة قديمة كانت تحفظ النص الخام داخل الحالة: يُعتبر نص realiser
+  const lg=(d&&d.st&&d.st.raw)||(d&&d.fa&&d.fa.raw)||(d&&d.raw)||'';if(lg)RAW.rl=lg}catch(e){}
+ try{const r=JSON.parse(localStorage.getItem('st_raw')||'null');if(r){if(r.rl)RAW.rl=r.rl;if(r.pr)RAW.pr=r.pr}}catch(e){}
+ delete R.st.raw;delete R.fa.raw}
 
 function applyLang(){
  const L=I[LANG];
  document.documentElement.lang=L.loc;document.documentElement.dir=L.dir;
  document.title='S-TRAITANT';
- document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=tx((TAB==='fa'&&e.dataset.iFa)||e.dataset.i)});
+ document.querySelectorAll('[data-i]').forEach(e=>{const d=e.dataset;e.textContent=tx((MODE==='pr'&&d.iPr)||(TAB==='fa'&&d.iFa)||d.i)});
  document.querySelectorAll('.tab').forEach(b=>{const on=b.dataset.tab===TAB;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
  ['#ctrlbl','#cname','#cadd','#cdel'].forEach(s=>{$(s).hidden=TAB==='fa'});
  document.querySelectorAll('[data-ip]').forEach(e=>{e.placeholder=tx(e.dataset.ip)});
- document.querySelectorAll('.lg').forEach(b=>{const on=b.dataset.lang===LANG;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})}
+ document.querySelectorAll('.lg[data-lang]').forEach(b=>{const on=b.dataset.lang===LANG;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+ document.querySelectorAll('.lg[data-mode]').forEach(b=>{const on=b.dataset.mode===MODE;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})}
 function setLang(l){if(!I[l])return;LANG=l;try{localStorage.setItem('st_lang',l)}catch(e){}
  applyLang();renderAll();if(SF)$('#status').textContent=SF()}
 
@@ -355,18 +384,29 @@ for(let i=0;i<R.length;i++){
 return out}
 
 const proj=()=>P.find(p=>p.code===S.project);
-function cfg(pc,c){const k=pc+'|'+c;return S.cfg[k]||(S.cfg[k]={pct:[40,20,15,20,5],blocks:{}})}
-function bs(g,id){return g.blocks[id]||(g.blocks[id]={on:false,st:[1,0,0,0,0],off:[]})}
-const prevOf=(pc,c)=>S.journal.filter(j=>j.p===pc&&j.c===c).sort((a,b)=>a.n-b.n).pop();
+// الإعدادات: 4 مراحل مجموعها 100%، ونسبة حجز مستقلة مع خانة تفعيل.
+// تحويل تلقائي للإعدادات القديمة (5 مراحل): نسبة المرحلة الخامسة تصبح نسبة الحجز وتُضاف إلى مرحلة الاستلام.
+function cfg(pc,c){const k=pc+'|'+c;
+ const g=S.cfg[k]||(S.cfg[k]={pct:[40,20,15,25],ret:5,retOn:true,blocks:{}});
+ if(g.pct.length>4){const r=+g.pct[4]||0;g.ret=r;g.pct[3]=(+g.pct[3]||0)+r;g.pct=g.pct.slice(0,4);g.retOn=true}
+ if(g.ret===undefined)g.ret=5;
+ if(g.retOn===undefined)g.retOn=true;
+ Object.keys(g.blocks).forEach(i=>{if(g.blocks[i].st.length>4)g.blocks[i].st=g.blocks[i].st.slice(0,4)});
+ return g}
+function bs(g,id){return g.blocks[id]||(g.blocks[id]={on:false,st:[1,0,0,0],off:[]})}
+// الوضعيات تُحفظ وتُحسب لكل جدول على حدة (k = rl أو pr؛ القديمة بلا k تُعتبر REALISER)
+const inMode=j=>(j.k||'rl')===MODE;
+const prevOf=(pc,c)=>S.journal.filter(j=>j.p===pc&&j.c===c&&inMode(j)).sort((a,b)=>a.n-b.n).pop();
 
+// الحجز = نسبة الحجز × الإنتاج المتراكم (في الواجهتين)
 function calc(p,c){
- const g=cfg(p.code,c),pct=g.pct.map(x=>(+x||0)/100);let value=0,prod=0,held=0;const rows=[];
+ const g=cfg(p.code,c),pct=g.pct.map(x=>(+x||0)/100);let value=0,prod=0;const rows=[];
  p.blocks.forEach(b=>{const s=g.blocks[b.id];if(!s||!s.on)return;
   let v=0;p.types.forEach(t=>{if(!s.off.includes(t.code))v+=(b.qty[t.code]||0)*(+S.prices[t.code]||0)});
   const f=s.st.reduce((a,x,i)=>a+(x?pct[i]:0),0),pr=v*f;
-  value+=v;prod+=pr;if(!s.st[4])held+=v;rows.push({id:b.id,v,f,pr})});
- const ret=pct[4]*held;
- return {value,prod,ret,rows}}
+  value+=v;prod+=pr;rows.push({id:b.id,v,f,pr})});
+ const ret2=g.retOn?(+g.ret||0)/100*prod:0;
+ return {value,prod,ret:0,ret2,rows}}
 
 function renderTop(){
  $('#proj').innerHTML=P.map(p=>`<option value="${esc(p.code)}" ${p.code===S.project?'selected':''}>${esc(p.code)}</option>`).join('')||`<option>${tx('noData')}</option>`;
@@ -377,13 +417,15 @@ function renderCfg(){
  if(!p||!c){$('#prices').innerHTML=`<p class="msg">${pk()}</p>`;$('#pcts').innerHTML='';$('#pctchk').textContent='';return}
  $('#prices').innerHTML=p.types.map(t=>`<label class="pr"><span>${esc(t.code)}<br><small dir="ltr">${esc(t.dims)}</small></span><input type="number" inputmode="decimal" min="0" step="any" data-price="${esc(t.code)}" value="${S.prices[t.code]||''}"></label>`).join('');
  const g=cfg(p.code,c);
- $('#pcts').innerHTML=stN().map((s,i)=>`<label class="pr"><span>${esc(s)}</span><input type="number" inputmode="decimal" min="0" step="any" data-pct="${i}" value="${g.pct[i]}"></label>`).join('');
+ $('#pcts').innerHTML=stN().map((s,i)=>`<label class="pr"><span>${esc(s)}</span><input type="number" inputmode="decimal" min="0" step="any" data-pct="${i}" value="${g.pct[i]}"></label>`).join('')
+ +`<label class="pr"><span>${esc(tx('retW'))}</span><input type="number" inputmode="decimal" min="0" step="any" data-ret value="${g.ret}"></label>`
+ +`<label class="pr"><span>${esc(tx('retOnW'))}</span><input type="checkbox" data-reton ${g.retOn?'checked':''}></label>`;
  pctChk()}
 function pctChk(){const p=proj();if(!p||!S.contractor)return;const t=cfg(p.code,S.contractor).pct.reduce((a,x)=>a+(+x||0),0);
  const okk=Math.abs(t-100)<1e-6;
  $('#pctchk').textContent=okk?tx('tot100'):tx('totBad',{x:fq(t)});$('#pctchk').className='msg '+(okk?'ok':'err')}
 
-let BS=[1,0,0,0,0];
+let BS=[1,0,0,0];
 let ES={};
 const esel=p=>ES[p.code]||(ES[p.code]=p.types.map(t=>t.code));
 function renderBlocks(){
@@ -408,41 +450,48 @@ function renderRes(){
  const p=proj(),c=S.contractor;
  if(!p||!c){$('#res').innerHTML=`<p class="msg">${pk()}</p>`;return}
  const r=calc(p,c),pv=prevOf(p.code,c)||{cumProd:0,cumRet:0,n:0},
-  cp=r.prod-pv.cumProd,net=cp;
+  cp=r.prod-pv.cumProd,cr=r.ret2-pv.cumRet,net=cp-cr;
  const dv=($('#sdate')&&$('#sdate').value)||new Date().toISOString().slice(0,10);
- $('#res').innerHTML=`<div class="row"><label>${tx('sitNo')} <b>${pv.n+1}</b></label><label>${tx('dated')} <input type="date" id="sdate" value="${dv}"></label></div>
+ $('#res').innerHTML=`<div class="row"><span class="tag" dir="ltr">${MN[MODE]}</span><label>${tx('sitNo')} <b>${pv.n+1}</b></label><label>${tx('dated')} <input type="date" id="sdate" value="${dv}"></label></div>
  <div class="cards"><div class="card"><small>${tx('value100')}</small><b>${fmt(r.value)}</b></div>
  <div class="card"><small>${tx('cumProd')}</small><b>${fmt(r.prod)}</b></div>
- <div class="card"><small>${tx('cumRet')}</small><b>${fmt(r.ret)}</b></div>
+ <div class="card"><small>${tx('cumRet')}</small><b>${fmt(r.ret2)}</b></div>
  <div class="card"><small>${tx('prevCum')}</small><b>${fmt(pv.cumProd)} / ${fmt(pv.cumRet)}</b></div></div>
  <div class="cards"><div class="card"><small>${tx('curProd')}</small><b>${fmt(cp)}</b></div>
+ <div class="card"><small>${tx('curRet')}</small><b>${fmt(cr)}</b></div>
  <div class="card big"><small>${tx('net')}</small><b class="${net<0?'err':''}">${fmt(net)} DA</b></div></div>
  <div class="row"><button id="save">${tx('save')}</button><span class="msg">${tx('saveHint')}</span></div>`}
 
 function renderJr(){
  const p=proj(),c=S.contractor;
- const L=S.journal.filter(j=>j.p===(p&&p.code)&&j.c===c).sort((a,b)=>a.n-b.n);
- $('#jr').innerHTML=L.length?L.map(j=>`<div class="jc"><div class="bh"><b>${tx('sit')} ${j.n}</b><span class="msg">${esc(j.d)}</span><button class="del" data-jd="${j.id}">${tx('del')}</button></div>
+ const L=S.journal.filter(j=>j.p===(p&&p.code)&&j.c===c&&inMode(j)).sort((a,b)=>a.n-b.n);
+ $('#jr').innerHTML=L.length?L.map(j=>`<div class="jc"><div class="bh"><b>${tx('sit')} ${j.n}</b><span class="tag" dir="ltr">${MN[MODE]}</span><span class="msg">${esc(j.d)}</span><button class="del" data-jd="${j.id}">${tx('del')}</button></div>
  <div class="kv"><span>${tx('cumProd')}</span><b class="n">${fmt(j.cumProd)}</b></div>
  <div class="kv"><span>${tx('cumRet')}</span><b class="n">${fmt(j.cumRet)}</b></div>
  <div class="kv"><span>${tx('curProd')}</span><b class="n">${fmt(j.prod)}</b></div>
+ <div class="kv"><span>${tx('curRet')}</span><b class="n">${fmt(j.ret||0)}</b></div>
  <div class="kv"><span><b>${tx('netW')}</b></span><b class="n">${fmt(j.net)}</b></div></div>`).join('')+`<div class="card big"><small>${tx('totNet')}</small><b>${fmt(L.reduce((a,j)=>a+j.net,0))} DA</b></div>`:`<p class="msg">${tx(TAB==='fa'?'noJrFa':'noJr')}</p>`}
 
 function renderAll(){renderTop();renderCfg();renderBlocks();renderRes();renderJr()}
 function refresh(){renderBlocks();renderRes()}
 
-function doParse(){const raw=$('#raw').value;R.st.raw=R.fa.raw=raw;P=parseProjects(raw);
- [R.st,R.fa].forEach(x=>{if(P.length&&!P.find(p=>p.code===x.project))x.project=P[0].code});
- save();
- if(P.length){const n=P.length;setSt('ok',()=>tx('found',{n}))}else setSt('err',()=>tx('nobloc'));
- renderAll()}
+function fixProj(){[R.st,R.fa].forEach(x=>{if(P.length&&!P.find(p=>p.code===x.project))x.project=P[0].code})}
+function ingestRaw(m,raw){
+ RAW[m]=raw;PM[m]=parseProjects(raw);
+ if(m===MODE){P=PM[m];$('#raw').value=raw}
+ fixProj();save();renderAll()}
+function doParse(){
+ ingestRaw(MODE,$('#raw').value);
+ if(P.length){const n=P.length;setSt('ok',()=>tx('found',{n}))}else setSt('err',()=>tx('nobloc'))}
 $('#parse').onclick=doParse;
 const toText=v=>v.map(row=>row.map(c=>/["\t\n]/.test(c)?'"'+String(c).replace(/"/g,'""')+'"':c).join('\t')).join('\n');
 function fetchData(){
  if(!REMOTE()){setSt('err',()=>tx('noUrl'));return}
+ const m=MODE;
  setSt('',()=>tx('updating'));
- BK.getRealiser().then(v=>{window._lf=Date.now();$('#raw').value=toText(v);doParse();if(P.length){const n=P.length,tm=new Date().toLocaleTimeString('fr-FR');setSt('ok',()=>tx('updated',{n})+' '+tm)}})
-  .catch(e=>{const m=(e&&e.message)||e;setSt('err',()=>tx('fetchFail')+m)})}
+ BK.getData(m).then(v=>{window._lf=Date.now();ingestRaw(m,toText(v));
+   if(m===MODE){if(P.length){const n=P.length,tm=new Date().toLocaleTimeString('fr-FR');setSt('ok',()=>tx('updated',{n})+' '+tm)}else setSt('err',()=>tx('nobloc'))}})
+  .catch(e=>{const msg=(e&&e.message)||e;setSt('err',()=>tx('fetchFail')+msg)})}
 $('#fetchbtn').onclick=fetchData;
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&REMOTE()&&Date.now()-(window._lf||0)>60000)fetchData()});
 
@@ -455,9 +504,12 @@ $('#cdel').onclick=()=>{const c=S.contractor;if(!c||!confirm(tx('delCq',{c})))re
 
 document.addEventListener('input',e=>{const t=e.target,p=proj(),c=S.contractor;
  if(t.dataset.price!==undefined){S.prices[t.dataset.price]=num(t.value);save();refresh()}
- if(t.dataset.pct!==undefined&&p&&c){cfg(p.code,c).pct[+t.dataset.pct]=num(t.value);save();pctChk();refresh()}});
+ if(t.dataset.pct!==undefined&&p&&c){cfg(p.code,c).pct[+t.dataset.pct]=num(t.value);save();pctChk();refresh()}
+ if(t.dataset.ret!==undefined&&p&&c){cfg(p.code,c).ret=num(t.value);save();refresh()}
+ if(t.dataset.reton!==undefined&&p&&c){cfg(p.code,c).retOn=t.checked;save();refresh()}});
 document.addEventListener('click',e=>{const t=e.target.closest('button,input')||e.target,p=proj(),c=S.contractor;
  if(t.dataset&&t.dataset.lang){setLang(t.dataset.lang);return}
+ if(t.dataset&&t.dataset.mode){setMode(t.dataset.mode);return}
  if(t.dataset&&t.dataset.tab){setTab(t.dataset.tab);return}
  if(p&&c){const g=cfg(p.code,c);let hit=true;
   if(t.dataset.bt!==undefined){const k=bs(g,t.dataset.bt);k.on=!k.on}
@@ -473,16 +525,23 @@ document.addEventListener('click',e=>{const t=e.target.closest('button,input')||
   else if(t.id==='non'){p.blocks.forEach(b=>{if(g.blocks[b.id])g.blocks[b.id].on=false})}
   else hit=false;
   if(hit){save();refresh()}}
- if(t.id==='save'&&p&&c){const r0=calc(p,c),pv0=prevOf(p.code,c)||{cumProd:0,n:0};
-  askPass('',{a:'SAVE',t:TAB,p:p.code,c,n:pv0.n+1,m:r0.prod-pv0.cumProd}).then(ok=>{if(!ok)return;
-  const r=calc(p,c),pv=prevOf(p.code,c)||{cumProd:0,cumRet:0,n:0},cp=r.prod-pv.cumProd;
-  S.journal.push({id:Date.now(),p:p.code,c,n:pv.n+1,d:$('#sdate').value,cumProd:r.prod,cumRet:r.ret,prod:cp,net:cp});save();renderRes();renderJr()})}
+ if(t.id==='save'&&p&&c){
+  const mode=MODE;
+  const f=()=>{const r=calc(p,c),pv=prevOf(p.code,c)||{cumProd:0,cumRet:0,n:0},
+    cp=r.prod-pv.cumProd,cr=r.ret2-pv.cumRet;
+    return {r,pv,cp,cr,net:cp-cr}};
+  const a=f();
+  askPass('',{a:'SAVE ('+MN[mode]+')',t:TAB,p:p.code,c,n:a.pv.n+1,m:a.net}).then(ok=>{if(!ok||mode!==MODE)return;
+  const x=f();
+  S.journal.push({id:Date.now(),k:mode,p:p.code,c,n:x.pv.n+1,d:$('#sdate').value,cumProd:x.r.prod,cumRet:x.r.ret2,prod:x.cp,ret:x.cr,net:x.net});save();renderRes();renderJr()})}
  if(t.dataset&&t.dataset.jd){const jid=t.dataset.jd,jj=S.journal.find(j=>String(j.id)===jid)||{};
-  askPass(tx('delJq'),{a:'DELETE',t:TAB,p:jj.p,c:jj.c,n:jj.n,m:jj.net}).then(ok=>{if(!ok)return;S.journal=S.journal.filter(j=>String(j.id)!==jid);save();renderRes();renderJr()})}});
+  askPass(tx('delJq'),{a:'DELETE ('+MN[jj.k||'rl']+')',t:TAB,p:jj.p,c:jj.c,n:jj.n,m:jj.net}).then(ok=>{if(!ok)return;S.journal=S.journal.filter(j=>String(j.id)!==jid);save();renderRes();renderJr()})}});
 
-function afterLoad(){const raw=R.st.raw||R.fa.raw||'';$('#raw').value=raw;if(raw)P=parseProjects(raw);
- [R.st,R.fa].forEach(x=>{if(!x.contractor&&x.contractors.length)x.contractor=x.contractors[0];if(P.length&&!P.find(p=>p.code===x.project))x.project=P[0].code});
- S=R[TAB];applyLang();renderAll()}
+function afterLoad(){
+ PM.rl=RAW.rl?parseProjects(RAW.rl):[];PM.pr=RAW.pr?parseProjects(RAW.pr):[];
+ P=PM[MODE];$('#raw').value=RAW[MODE];
+ [R.st,R.fa].forEach(x=>{if(!x.contractor&&x.contractors.length)x.contractor=x.contractors[0]});
+ fixProj();S=R[TAB];applyLang();renderAll()}
 applyLang();
 load();
 $('#apisec').hidden=!!GAS;
